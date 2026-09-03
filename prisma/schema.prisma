@@ -1,0 +1,82 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  SUPERADMIN
+  ADMIN
+  EDITOR
+}
+
+enum AuditTransaction {
+  CREATE
+  UPDATE
+  DELETE
+  VERIFY
+  REJECT
+  LOGIN
+  LOGOUT
+}
+
+model User {
+  id       String  @id @default(uuid())
+  email    String  @unique
+  password String
+  role     Role
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  audits AuditLog[]
+
+  @@map("users")
+}
+
+model SiteSetting {
+  key   String @unique
+  value String
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@map("site_settings")
+}
+
+model AuditLog {
+  id String @id @default(cuid())
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  transaction AuditTransaction
+
+  entity   String
+  entityId String?
+
+  description String?
+
+  metadata Json?
+
+  ipAddress String?
+  userAgent String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([transaction])
+  @@index([entity])
+  @@index([entityId])
+  @@index([createdAt])
+  @@map("audit_log")
+}
