@@ -6,7 +6,7 @@ import { CreateGallerySchema } from "./gallery.validate";
 
 const publicRouter = Router();
 
-publicRouter.get("/", GalleryPublicController)
+publicRouter.get("/campaign/:campaignId", GalleryPublicController)
 
 const router = Router();
 const galleryController = new GalleryController();

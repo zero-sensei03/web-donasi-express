@@ -58,6 +58,16 @@ enum DonationStatus {
   REJECTED
 }
 
+enum NotificationType {
+  NEW_DONATION
+  SYSTEM
+}
+
+enum ContactType {
+  WHATSAPP
+  TELEGRAM
+}
+
 model User {
   id       String  @id @default(uuid())
   email    String  @unique
@@ -134,6 +144,7 @@ model Campaigns {
   galleries           Gallery[]
   paymentMethods      PaymentMethod[]
   donations           Donation[]  
+  contact             ContactList[]  
   
   @@map("campaigns")
 }
@@ -334,6 +345,7 @@ model Donation {
   proofOfPaymentUrl       String?
 
   message                 String?    @db.Text
+  reply                   String?    @db.Text
 
   status                  DonationStatus @default(PENDING)
 
@@ -341,4 +353,34 @@ model Donation {
   updatedAt               DateTime @updatedAt @db.Timestamptz(3)
 
   @@map("donations")
+}
+
+model Notification {
+  id          String           @id @default(uuid())
+  title       String
+  message     String           @db.Text
+  type        NotificationType @default(NEW_DONATION)
+  isRead      Boolean          @default(false)
+
+  // Relasi Opsional ke Donation
+  donationId  String?
+
+  createdAt   DateTime         @default(now()) @db.Timestamptz(3)
+
+  @@map("notifications")
+}
+
+model ContactList {
+  id                      String    @id @default(uuid())
+  campaignId              String
+  campaign                Campaigns @relation( fields: [campaignId], references: [id], onDelete: Cascade )
+
+  name                    String
+  role                    String
+  phone                   String
+
+  type                    ContactType @default(WHATSAPP)
+
+  createdAt               DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt               DateTime @updatedAt @db.Timestamptz(3)
 }

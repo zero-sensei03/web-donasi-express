@@ -6,7 +6,7 @@ import { CreateCampaignProposalSchema } from "./proposal.validate";
 
 const publicRouter = Router();
 
-publicRouter.get("/", ProposalPublicController)
+publicRouter.get("/campaign/:campaignId", ProposalPublicController)
 
 const router = Router();
 const proposalControlle = new ProposalController();
