@@ -45,7 +45,7 @@ export class SiteSettingService {
         return result;
     };
 
-    async update (agent: agentResult, key: string, value: string | null, file: Express.Multer.File | null) {
+    async update (agent: agentResult, userId: string, key: string, value: string | null, file: Express.Multer.File | null) {
 
         if(!value && !file) throw new AppError("Value atau file tidak boleh kosong")
         
@@ -71,7 +71,7 @@ export class SiteSettingService {
                 }
             })
     
-            await this.auditService.create(tx, null, "UPDATE", "site_settings", result.key, agent, result)
+            await this.auditService.create(tx, userId, "UPDATE", "site_settings", result.key, agent, result)
             return result;
         } )
     }

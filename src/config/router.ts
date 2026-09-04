@@ -3,6 +3,7 @@ import { siteSettingProtectedRouter, siteSettingPublicRouter } from "../features
 import { authenticate } from "../middlewares/auth";
 import { AuthRouter } from "../features/auth/auth.router";
 import { campaignProtectedRouter, campaignPublicRouter } from "../features/campaign/campaign.route";
+import { proposalPublicRouter, proposalRouter } from "../features/campaign/proposal/prpoposal.route";
 
 const router = Router()
 
@@ -11,8 +12,10 @@ router.use("/auth", AuthRouter)
 
 router.use("/public/site-setting", siteSettingPublicRouter)
 router.use("/public/campaign", campaignPublicRouter)
+router.use("/public/proposal", proposalPublicRouter)
 
 router.use("/protected/site-setting", authenticate, siteSettingProtectedRouter)
 router.use("/protected/campaign", authenticate, campaignProtectedRouter)
+router.use("/protected/proposal", authenticate, proposalRouter)
 
 export { router }

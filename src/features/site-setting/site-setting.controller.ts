@@ -43,7 +43,9 @@ export class SiteSetting {
             if (!key || !value) return sendError(res, "Key atau value tidak boleh kosong", undefined, 422);
 
             const agent = await userAgent(req);
-            const result = await this.siteService.update(agent, key.toString(), value.toString(), null);
+            const userData = req.user;
+
+            const result = await this.siteService.update(agent, userData?.userId || "", key.toString(), value.toString(), null);
             return sendSuccess(res, "Data site berhasil diperbarui", result, 200);
         } catch (error) {
             next(error)
@@ -64,8 +66,10 @@ export class SiteSetting {
                 return sendError(res, "Error file validation", validation.error.flatten().fieldErrors, 400);
             }
 
+            const userData = req.user;
+
             const agent = await userAgent(req);
-            const result = await this.siteService.update(agent, "app.logo", null, file);
+            const result = await this.siteService.update(agent, userData?.userId || "", "app.logo", null, file);
             return sendSuccess(res, "Data site berhasil diperbarui", result, 200);
         } catch (error) {
             next(error)
