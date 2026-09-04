@@ -1,30 +1,29 @@
-import { Prisma, ProposalStatus } from "../../../generated/prisma/client";
+import { Prisma } from "../../../generated/prisma/client";
 import { prisma } from "../../../lib/prisma";
 import { storageService } from "../../../lib/storage.service";
 import { AppError } from "../../../utils/AppError";
 import { agentResult } from "../../../utils/userAgent";
 import { AuditService } from "../../audit/service";
-import { RequestCreateCampaignProposalDTO } from "./proposal.validate";
+import { RequestCreateGalleryDTO } from "./gallery.validate";
 
-export const ProposalPublicService = async (campaignId: string) => {
+export const GalleryPublicService = async (campaignId: string) => {
     if (!campaignId) {
         return []
     }
 
-    return await prisma.campaignProposal.findMany({
+    return await prisma.gallery.findMany({
         where: {
-            campaignId,
-            status: "PUBLISHED"
+            campaignId
         },
         orderBy: [
             {
-                createdAt: "desc",
+                timeStamp: "desc",
             },
         ],
     })
 }
 
-export class ProposalService {
+export class GalleryService {
     private auditService: AuditService;
 
     constructor() {
@@ -32,12 +31,11 @@ export class ProposalService {
     }
 
 
-    async getProposalByCampaignId(
+    async getGalleryByCampaignId(
         campaignId: string,
         page: number = 1,
         limit: number = 10,
-        search?: string,
-        status?: ProposalStatus
+        search?: string
     ) {
         try {
 
@@ -49,11 +47,8 @@ export class ProposalService {
             const currentLimit = Math.min(Math.max(1, limit), 100);
             const skip = (currentPage - 1) * currentLimit;
     
-            if(status && !Object.values(ProposalStatus).includes(status)) {
-                throw new AppError("Status tidak ditemukan");
-            }
     
-            const whereClause: Prisma.CampaignProposalWhereInput = {
+            const whereClause: Prisma.GalleryWhereInput = {
                 campaignId: campaignId,
                 ...(search
                     ? {
@@ -73,15 +68,10 @@ export class ProposalService {
                         ],
                     }
                     : {}),
-                ...(status
-                    ? {
-                        status: status,
-                    }
-                    : {})
             };
     
             const [items, total] = await Promise.all([
-                prisma.campaignProposal.findMany({
+                prisma.gallery.findMany({
                     where: whereClause,
         
                     orderBy: [
@@ -94,7 +84,7 @@ export class ProposalService {
                 take: currentLimit,
             }),
         
-            prisma.campaignProposal.count({
+            prisma.gallery.count({
                 where: whereClause,
             }),
         ]);
@@ -111,103 +101,127 @@ export class ProposalService {
         }
     } 
 
-    async getProposalById(id: string) {
+    async getGalleryById(id: string) {
         try {
-            const proposal = await prisma.campaignProposal.findUnique({
+            const galeri = await prisma.gallery.findUnique({
                 where: {
                     id,
                 },
             });
-            if (!proposal) {
-                throw new AppError("Proposal not found");
+            if (!galeri) {
+                throw new AppError("Galeri not found");
             }
-            return proposal;
+            return galeri;
         } catch (error) {
             throw error;
         }
     }
 
-    async createProposal(agent: agentResult, userId: string, data: RequestCreateCampaignProposalDTO, file: Express.Multer.File) {
+    async createGallery(agent: agentResult, userId: string, data: RequestCreateGalleryDTO, image: Express.Multer.File, video?: Express.Multer.File | null) {
         try {
-            const proposalFile = await storageService.upload(file.buffer, file.mimetype, {
-                folder: 'proposals',
+            const thumbnail = await storageService.upload(image.buffer, image.mimetype, {
+                folder: 'gallery',
             });
 
+            let videoUrl: string | null = null;
+
+            if (data.galleryType === "VIDEO") {
+                if (!video) throw new AppError("Video tidak boleh kosong")
+
+                videoUrl = await storageService.upload(video.buffer, video.mimetype, {
+                    folder: 'gallery'
+                })
+            }
+
             return await prisma.$transaction( async(tx) => {
-                const result = await tx.campaignProposal.create({
+                const result = await tx.gallery.create({
                     data: {
                         ...data,
-                        proposalPdfUrl: proposalFile,
+                        imageUrl: thumbnail,
+                        videoUrl
                     }
                 })
         
-                await this.auditService.create(tx, userId, "CREATE", "proposal", result.id, agent, result)
+                await this.auditService.create(tx, userId, "CREATE", "gallery", result.id, agent, result)
                 return result;
             } )
         } catch (error) {
             throw error;
         }
     }
-    async updateProposal(agent: agentResult, userId: string, id: string, data: RequestCreateCampaignProposalDTO, file?: Express.Multer.File | null) {
+    async updateGallery(agent: agentResult, userId: string, id: string, data: RequestCreateGalleryDTO, image?: Express.Multer.File | null, video?: Express.Multer.File | null) {
         try {
-            const checkProposal = await prisma.campaignProposal.findUnique({
+            const checkGallery = await prisma.gallery.findUnique({
                 where: {
                     id,
                 }
             });
 
-            if (!checkProposal) {
-                throw new AppError("Proposal tidak ditemukan", 404);
+            if (!checkGallery) {
+                throw new AppError("Galeri tidak ditemukan", 404);
             }
 
             const payload = {
                 ...data,
-                proposalPdfUrl: checkProposal.proposalPdfUrl,
+                imageUrl: checkGallery.imageUrl,
+                videoUrl: checkGallery.videoUrl
             }
 
-            if (file) {
-                const proposalFile = await storageService.upload(file.buffer, file.mimetype, {
-                    folder: 'proposals',
+            if (image) {
+                const thumbnail = await storageService.upload(image.buffer, image.mimetype, {
+                    folder: 'gallery',
                 });
-                payload.proposalPdfUrl = proposalFile;
+                payload.imageUrl= thumbnail;
             }
+
+            if (data.galleryType === "VIDEO") {
+                if (!checkGallery.videoUrl && !video) throw new AppError("Video tidak boleh kosong")
+
+                if (video) {
+                    const videoUrl = await storageService.upload(video.buffer, video.mimetype, {
+                        folder: 'gallery'
+                    })
+                    payload.videoUrl = videoUrl
+                }
+            }
+
 
 
             return await prisma.$transaction( async(tx) => {
-                const result = await tx.campaignProposal.update({
+                const result = await tx.gallery.update({
                     where: {
                         id,
                     },
                     data: payload
                 })
         
-                await this.auditService.create(tx, userId, "UPDATE", "proposal", result.id, agent, result)
+                await this.auditService.create(tx, userId, "UPDATE", "gallery", result.id, agent, result)
                 return result;
             } )
         } catch (error) {
             throw error;
         }
     }
-    async deleteProposal(agent: agentResult, userId: string, id: string) {
+    async deleteGallery(agent: agentResult, userId: string, id: string) {
         try {
-            const checkProposal = await prisma.campaignProposal.findUnique({
+            const checkGallery = await prisma.gallery.findUnique({
                 where: {
                     id,
                 }
             });
 
-            if (!checkProposal) {
-                throw new AppError("Proposal tidak ditemukan", 404);
+            if (!checkGallery) {
+                throw new AppError("Galeri tidak ditemukan", 404);
             }
 
             return await prisma.$transaction( async(tx) => {
-                const result = await tx.campaignProposal.delete({
+                const result = await tx.gallery.delete({
                     where: {
                         id,
                     }
                 })
         
-                await this.auditService.create(tx, userId, "DELETE", "proposal", result.id, agent, result)
+                await this.auditService.create(tx, userId, "DELETE", "gallery", result.id, agent, result)
                 return result;
             } )
         } catch (error) {

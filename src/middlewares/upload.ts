@@ -86,5 +86,47 @@ export const createUploadMiddleware = (options: UploadMiddlewareOptions = {}) =>
         });
       };
     },
+    
+
+    fields: (
+      fields: { name: string; maxCount: number }[],
+    ) => {
+      return (req: Request, res: Response, next: NextFunction) => {
+        upload.fields(fields)(req, res, (err: any) => {
+          if (err instanceof multer.MulterError) {
+            if (err.code === "LIMIT_FILE_SIZE") {
+              return res.status(400).json({
+                success: false,
+                message: `One or more files exceed the maximum allowed size of ${maxFileSizeMB} MB.`,
+              });
+            }
+
+            if (
+              err.code === "LIMIT_UNEXPECTED_FILE" ||
+              err.code === "LIMIT_FILE_COUNT"
+            ) {
+              return res.status(400).json({
+                success: false,
+                message: `The number of files exceeds the limit.`,
+              });
+            }
+
+            return res.status(400).json({
+              success: false,
+              message: err.message,
+            });
+          }
+
+          if (err) {
+            return res.status(400).json({
+              success: false,
+              message: err.message,
+            });
+          }
+
+          next();
+        });
+      };
+    },
   };
 };

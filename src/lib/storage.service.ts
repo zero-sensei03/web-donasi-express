@@ -4,8 +4,8 @@ import {
   DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
 import { Env } from "../config/env";
-import { UploadOptions, UploadResult } from '../types/storage';
-import { processImage } from '../utils/imageOptimizer';
+import { UploadOptions } from '../types/storage';
+import { processFile } from "../utils/fileProcessor";
 
 export const minioClient = new S3Client({
   endpoint: Env.MINIO_ENDPOINT,
@@ -27,7 +27,7 @@ export class StorageService {
     options: UploadOptions = {}
   ): Promise<string> {
     // 1. Process & Optimize Image (Convert to WebP except GIF)
-    const { buffer, mimetype, extension } = await processImage(fileBuffer, originalMimeType);
+    const { buffer, mimetype, extension } = await processFile(fileBuffer, originalMimeType);
 
     // 2. Generate Unique Filename & Path
     const folder = options.folder ? `${options.folder}/` : '';
