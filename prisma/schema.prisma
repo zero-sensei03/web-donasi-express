@@ -28,6 +28,36 @@ enum AuditTransaction {
   LOGOUT
 }
 
+enum CampaignStatus {
+  NOT_STARTED
+  ACTIVE
+  FINISHED
+  INACTIVE
+}
+
+enum ProposalStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum GalleryType {
+  IMAGE
+  VIDEO
+}
+
+enum PaymentMethodType {
+  BANK_TRANSFER
+  QRIS
+}
+
+enum DonationStatus {
+  PENDING
+  ACCEPTED
+  ACCEPTED_BY_REVISION
+  REJECTED
+}
+
 model User {
   id       String  @id @default(uuid())
   email    String  @unique
@@ -45,7 +75,7 @@ model User {
 
 model SiteSetting {
   key   String @unique
-  value String
+  value String  @db.Text
 
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
@@ -79,4 +109,236 @@ model AuditLog {
   @@index([entityId])
   @@index([createdAt])
   @@map("audit_log")
+}
+
+model Campaigns {
+  id          String          @id @default(uuid())
+  status      CampaignStatus  @default(ACTIVE)
+  startAt     DateTime        @db.Timestamptz(3)
+  endAt       DateTime        @db.Timestamptz(3)
+
+
+  title       String
+  description String
+
+  targetDonationAmount   Float
+  sponsorCount           Int
+
+  createdAt   DateTime    @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime    @updatedAt @db.Timestamptz(3)
+  deletedAt   DateTime?   @db.Timestamptz(3)
+
+  homePageSection     HomePageSection?
+  aboutUsSection      AboutUsSection?
+  campaignProposals   CampaignProposal[]
+  galleries           Gallery[]
+  paymentMethods      PaymentMethod[]
+  donations           Donation[]  
+  
+  @@map("campaigns")
+}
+
+model HomePageSection {
+  id                      String   @id @default(uuid())
+  
+  campaignId              String    @unique
+  campaign                Campaigns @relation( fields: [campaignId], references: [id], onDelete: Cascade )
+
+  heroBgImage             String?
+  heroTagline             String?
+  heroTitle               String?
+  heroDescription         String?
+
+  whyHomeDescription      String?
+
+  supportWorkTagline      String?
+  supportWorkDescription	String?
+
+  ctaSectionBgImage       String?
+  ctaSectionTagline       String?
+  ctaSectionTitle         String?
+  ctaSectionSubtitle      String?
+
+  createdAt               DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt               DateTime @updatedAt @db.Timestamptz(3)
+
+  whySection              WhySection[]
+  supportWorkSection      SupportWorkSection[]
+
+
+  @@map("page_sections")
+}
+
+model WhySection {
+  id                      String   @id @default(uuid())
+  
+  homePageSectionId           String
+  homePageSection             HomePageSection @relation( fields: [homePageSectionId], references: [id], onDelete: Cascade )
+
+  icon                    String?
+  title                   String
+  subTitle                String?
+
+  createdAt               DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt               DateTime @updatedAt @db.Timestamptz(3)
+
+  @@map("why_sections")
+}
+
+model SupportWorkSection {
+  id                      String   @id @default(uuid())
+  
+  homePageSectionId           String
+  homePageSection             HomePageSection @relation( fields: [homePageSectionId], references: [id], onDelete: Cascade )
+
+  order                   Int
+  icon                    String?
+  title                   String
+  description             String?
+  tagline                 String?
+
+  focus                   String[]
+
+  createdAt               DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt               DateTime @updatedAt @db.Timestamptz(3)
+
+  @@unique([homePageSectionId, order])
+  @@map("support_work_sections")
+}
+
+model AboutUsSection {
+  id                      String   @id @default(uuid())
+  
+  campaignId              String    @unique
+  campaign                Campaigns @relation( fields: [campaignId], references: [id], onDelete: Cascade )
+
+  heroBgImage             String?
+  heroTagline             String?
+  heroTitle               String?
+  heroDescription         String?
+
+  vision                  String?   @db.Text
+  mission                 String[]
+
+  createdAt               DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt               DateTime @updatedAt @db.Timestamptz(3)
+
+  CampaignTim             CampaignTim[]
+  WorkStructureDivision   WorkStructureDivision[]
+
+  @@map("about_us_sections")
+}
+
+model CampaignTim {
+  id                      String   @id @default(uuid())
+  aboutUsSectionId        String
+  aboutUsSection          AboutUsSection @relation( fields: [aboutUsSectionId], references: [id], onDelete: Cascade )
+
+
+  image                  String?
+  name                   String
+  position               String?
+
+  instagram              String?
+  linkedin               String?
+
+  createdAt               DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt               DateTime @updatedAt @db.Timestamptz(3)
+
+  @@map("campaign_tim")
+}
+
+model WorkStructureDivision {
+  id                      String   @id @default(uuid())
+  
+  aboutUsSectionId        String
+  aboutUsSection          AboutUsSection @relation( fields: [aboutUsSectionId], references: [id], onDelete: Cascade )
+
+  divisionName            String
+  divisionJobDescription  String
+
+  createdAt               DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt               DateTime @updatedAt @db.Timestamptz(3)
+
+  @@map("work_structure_divisions")
+}
+
+model CampaignProposal {
+  id                      String   @id @default(uuid())
+  
+  campaignId              String
+  campaign                Campaigns @relation( fields: [campaignId], references: [id], onDelete: Cascade )
+
+  title                   String
+  description             String
+  proposalPdfUrl          String?
+  status                  ProposalStatus @default(DRAFT)
+
+  createdAt               DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt               DateTime @updatedAt @db.Timestamptz(3)
+
+  @@map("campaign_proposals")
+}
+
+model Gallery {
+  id                      String   @id @default(uuid())
+  
+  campaignId              String
+  campaign                Campaigns @relation( fields: [campaignId], references: [id], onDelete: Cascade )
+
+  galleryType             GalleryType @default(IMAGE)
+  imageUrl                String
+  videoUrl                String?
+  title                   String?
+  description             String?
+
+  timeStamp               DateTime? @db.Timestamptz(3)
+
+  createdAt               DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt               DateTime @updatedAt @db.Timestamptz(3)
+
+  @@map("galleries")
+}
+
+model PaymentMethod {
+  id                      String   @id @default(uuid())
+  
+  campaignId              String
+  campaign                Campaigns @relation( fields: [campaignId], references: [id], onDelete: Cascade )
+
+  type                    PaymentMethodType @default(BANK_TRANSFER)
+
+  qrisImage               String?
+  bankName                String?
+  accountNumber           String?
+
+  name                    String
+  description             String?
+
+  createdAt               DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt               DateTime @updatedAt @db.Timestamptz(3)
+
+  @@map("payment_methods")
+}
+
+model Donation {
+  id                      String   @id @default(uuid())
+  
+  campaignId              String
+  campaign                Campaigns @relation( fields: [campaignId], references: [id], onDelete: Cascade )
+
+  donorName               String    @default("Anonymous")
+  amount                  Float
+  acceptedAmount          Float?
+
+  proofOfPaymentUrl       String?
+
+  message                 String?    @db.Text
+
+  status                  DonationStatus @default(PENDING)
+
+  createdAt               DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt               DateTime @updatedAt @db.Timestamptz(3)
+
+  @@map("donations")
 }
