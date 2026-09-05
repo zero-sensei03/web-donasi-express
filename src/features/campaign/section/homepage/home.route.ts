@@ -9,6 +9,7 @@ const dataController = new HomePageController();
 
 const uploadFile = createUploadMiddleware({
   maxFileSizeMB: 2,
+  maxFilesCount: 2,
   allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
 });
 
