@@ -32,8 +32,8 @@ router.post("/why-section", uploadSingle.single("image"), validate(CreateWhySect
 router.put("/why-section/:id", uploadSingle.single("image"), validate(CreateWhySectionSchema), dataController.updateWhySection);
 router.delete("/why-section", dataController.deleteWhySection);
 
-router.post("/suppoprt-work", validate(CreateSupportWorkSchema), dataController.createSupportWork);
-router.put("/suppoprt-work/:id", validate(CreateSupportWorkSchema), dataController.updateSupportWork);
+router.post("/suppoprt-work", uploadSingle.single("image"), validate(CreateSupportWorkSchema), dataController.createSupportWork);
+router.put("/suppoprt-work/:id", uploadSingle.single("image"), validate(CreateSupportWorkSchema), dataController.updateSupportWork);
 router.delete("/suppoprt-work", dataController.deleteSupportWork);
 
 export { router as homeRouter };
