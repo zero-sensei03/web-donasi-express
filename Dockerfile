@@ -43,15 +43,14 @@ RUN apk add --no-cache openssl
 
 COPY package*.json ./
 
-# Install dependensi (termasuk prisma CLI untuk running migration)
+# Install dependensi
 RUN npm ci
 
-# Copy Prisma generated client & schema/migrations
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+# Copy Prisma schema/migrations saja (TIDAK PERLU copy node_modules/.prisma)
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder /app/prisma ./prisma
 
-# Copy hasil build JS dari SWC
+# Copy hasil build SWC (termasuk kode yang meng-import prisma client)
 COPY --from=builder /app/dist ./dist
 
 EXPOSE 6001
