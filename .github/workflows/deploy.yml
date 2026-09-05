@@ -56,4 +56,4 @@ jobs:
             docker compose pull backend-app
 
             # 4. Jalankan ulang container backend (otomatis jalankan 'npx prisma migrate deploy' saat start)
-            docker compose up -d --remove-orphans backend
+            docker compose up -d --remove-orphans backend-app
