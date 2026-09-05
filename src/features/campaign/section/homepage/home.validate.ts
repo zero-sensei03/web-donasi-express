@@ -43,7 +43,7 @@ export const CreateSupportWorkSchema = z.object({
     homePageSectionId: z
       .string("HomePage Section ID wajib diisi" )
       .uuid("HomePage Section ID tidak valid"),
-    order: z
+    order: z.coerce
       .number("Order wajib diisi" )
       .int("Order harus berupa angka bulat")
       .min(1, "Order minimal 1"),
