@@ -78,11 +78,8 @@ export class HomePageService {
       return await prisma.$transaction(async (tx) => {
         const result = await tx.homePageSection.upsert({
           where: { campaignId },
-          update: { ...data },
-          create: {
-            campaignId,
-            ...data,
-          },
+          update: payload,
+          create: payload,
         });
 
         await this.auditService.create(
