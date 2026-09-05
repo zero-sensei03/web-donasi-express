@@ -136,7 +136,7 @@ export const DonationCampaignPublicService = async (campaignId: string) => {
     return {
       target: campaign.targetDonationAmount,
       collected: Number(donation._sum.acceptedAmount || 0) || 0,
-      donateCount: Number(donatur || 0)
+      donateCount: Number(donatur || 0),
       sponsor: campaign.sponsorCount
     };
 }
