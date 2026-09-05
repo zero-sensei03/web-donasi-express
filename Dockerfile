@@ -24,6 +24,7 @@ COPY package*.json ./
 COPY prisma ./prisma
 COPY src ./src
 COPY .swcrc* ./
+COPY prisma7.config.ts ./
 
 # Generate Prisma Client & Build SWC
 RUN npx prisma generate
