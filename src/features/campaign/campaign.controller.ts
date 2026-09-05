@@ -1,6 +1,6 @@
 import { RequestCreateCampaignDTO, RequestUpdateCampaignDTO } from './campaign.validate';
 import { NextFunction, Request, Response } from "express";
-import { CampaignPublicService, CampaignService } from "./campaign.service";
+import { CampaignPublicService, CampaignService, DonationCampaignPublicService } from "./campaign.service";
 import { sendError, sendSuccess } from "../../utils/response";
 import { userAgent } from '../../utils/userAgent';
 
@@ -10,6 +10,15 @@ export const CampaignPublicController = async (req: Request, res: Response, next
         return sendSuccess(res, "Data campaign get successfully", result, 200);
     } catch (error) {
         next(error)
+    }
+}
+export const CampaignDonationPublicController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { campaignId } = req.params
+      const result = await DonationCampaignPublicService(campaignId.toString());
+      return sendSuccess(res, "Data campaign get successfully", result, 200);
+    } catch (error) {
+      next(error)
     }
 }
 

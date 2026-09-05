@@ -1,12 +1,13 @@
 import { Router } from "express";
 import { createUploadMiddleware } from "../../middlewares/upload";
-import { CampaignController, CampaignPublicController } from "./campaign.controller";
+import { CampaignController, CampaignDonationPublicController, CampaignPublicController } from "./campaign.controller";
 import { validate } from "../../middlewares/validate";
 import { CreateCampaignSchema } from "./campaign.validate";
 
 const publicRouter = Router();
 
 publicRouter.get("/", CampaignPublicController);
+publicRouter.get("/donation/:campaignId", CampaignDonationPublicController);
 
 const protectedRouter = Router();
 const campaignController = new CampaignController();

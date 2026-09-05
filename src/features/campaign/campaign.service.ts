@@ -110,6 +110,33 @@ export const CampaignPublicService = async () => {
         status: eventStatus
     };
 }
+export const DonationCampaignPublicService = async (campaignId: string) => {
+    const campaign = await prisma.campaigns.findUnique({
+        where: {
+            id: campaignId
+        },
+        select: {
+          targetDonationAmount: true,
+          sponsorCount: true,
+        }
+    })
+    if (!campaign) throw new AppError("Campaign tidak ditemukan", 404)
+
+    const donation = await prisma.donation.aggregate({
+      where: {
+        campaignId
+      },
+      _sum: {
+        acceptedAmount: true
+      }
+    })
+
+    return {
+      target: campaign.targetDonationAmount,
+      collected: Number(donation._sum.acceptedAmount || 0) || 0,
+      sponsor: campaign.sponsorCount
+    };
+}
 
 export class CampaignService {
 
