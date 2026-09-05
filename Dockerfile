@@ -56,4 +56,4 @@ COPY --from=builder /app/dist ./dist
 EXPOSE 6001
 
 # Jalankan migration dulu ke Postgres, lalu jalankan server Node
-CMD ["sh", "-c", "DATABASE_URL=$DATABASE_URL npx prisma migrate deploy && node dist/config/server.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy --config prisma7.config.ts && node dist/config/server.js"]
