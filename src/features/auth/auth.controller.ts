@@ -31,4 +31,31 @@ export class AuthController {
             next(error)
         }
     }
+    logout = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { refreshToken } = req.body;
+
+            if (!refreshToken) {
+                return sendError(
+                    res,
+                    "Refresh token tidak boleh kosong",
+                    undefined,
+                    400
+                );
+            }
+
+            const result = await this.authService.logout(
+                refreshToken.toString()
+            );
+
+            return sendSuccess(
+                res,
+                "Anda berhasil logout",
+                result,
+                200
+            );
+        } catch (error) {
+            next(error);
+        }
+    };
 }

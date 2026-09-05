@@ -1,7 +1,7 @@
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../../utils/AppError";
 import { comparePassword } from "../../utils/bcrypt";
-import { generateAuthTokens, verifyRefreshToken } from "../../utils/jwt";
+import { generateAuthTokens, isTokenRevoked, revokeToken, verifyRefreshToken } from "../../utils/jwt";
 import { agentResult } from "../../utils/userAgent";
 import { AuditService } from "../audit/service";
 import { RequestLoginDTO } from "./auth.validate";
@@ -56,6 +56,9 @@ export class AuthService {
     };
 
     async refresh(refreshToken: string) {
+        const checkRevokeToken = isTokenRevoked(refreshToken);
+        if(checkRevokeToken) throw new AppError("Refresh token tidak valid atau sudah expired", 401);
+
         const checkRefreshToken = verifyRefreshToken(refreshToken);
         if(!checkRefreshToken) throw new AppError("Refresh token tidak valid", 401);
 
@@ -81,7 +84,23 @@ export class AuthService {
                 }
             }
         } catch (error) {
-            throw error;
+            throw error;            
         }
     }
+
+    async logout(refreshToken: string) {
+        try {
+            const payload = verifyRefreshToken(refreshToken);
+
+            revokeToken(refreshToken);
+
+            return {
+                userId: payload.userId
+            };
+        } catch (error) {
+            return {
+                userId: undefined
+            };
+        }
+}
 }

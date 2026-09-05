@@ -8,5 +8,5 @@ const authController = new AuthController();
 
 router.post("/sign-in", validate(LoginSchema), authController.login);
 router.post("/refresh", authController.refresh);
-
+router.post("/logout", authController.logout);
 export { router as AuthRouter }
