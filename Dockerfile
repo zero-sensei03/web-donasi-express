@@ -47,14 +47,15 @@ COPY package*.json ./
 # Install dependensi
 RUN npm ci
 
-# Copy Prisma schema/migrations saja (TIDAK PERLU copy node_modules/.prisma)
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+# Copy Prisma schema & config
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma7.config.ts ./
-COPY --from=builder /app/src/generated ./src/generated
 
-# Copy hasil build SWC (termasuk kode yang meng-import prisma client)
+# Copy hasil build SWC
 COPY --from=builder /app/dist ./dist
+
+# GENERATE REFRESH PRISMA CLIENT LANGSUNG DI RUNNER
+RUN npx prisma generate --config prisma7.config.ts
 
 EXPOSE 6001
 
