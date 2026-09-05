@@ -50,7 +50,8 @@ export const CampaignPublicService = async () => {
                             icon: true,
                             title: true,
                             description: true,
-                            focus: true
+                            focus: true,
+                            tagline: true
                         },
                         orderBy: {
                             order: "asc"
