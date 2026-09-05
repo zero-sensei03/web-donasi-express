@@ -1,0 +1,59 @@
+name: Deploy Backend & Run Prisma Migration to NAT VPS
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+      - name: Deploy to NAT VPS via Single SSH Connection
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          port: ${{ secrets.VPS_SSH_PORT }}
+          username: ${{ secrets.VPS_USERNAME }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          use_insecure_cipher: true
+          request_pty: true
+          timeout: 60s
+          command_timeout: 10m
+          script: |
+            # 1. Pindah ke direktori backend tempat docker-compose.yml berada
+            cd /opt/docker/apps/web-donasi-backend
+
+            # 2. Login ke GHCR di VPS
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            # 3. Pull image backend terbaru dari GHCR
+            docker compose pull backend
+
+            # 4. Jalankan ulang container backend (otomatis jalankan 'npx prisma migrate deploy' saat start)
+            docker compose up -d --remove-orphans backend

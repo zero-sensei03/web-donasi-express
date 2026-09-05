@@ -158,17 +158,17 @@ model HomePageSection {
   heroBgImage             String?
   heroTagline             String?
   heroTitle               String?
-  heroDescription         String?
+  heroDescription         String?   @db.Text
 
-  whyHomeDescription      String?
+  whyHomeDescription      String?   @db.Text
 
   supportWorkTagline      String?
-  supportWorkDescription	String?
+  supportWorkDescription	String?   @db.Text
 
   ctaSectionBgImage       String?
   ctaSectionTagline       String?
   ctaSectionTitle         String?
-  ctaSectionSubtitle      String?
+  ctaSectionSubtitle      String?   @db.Text
 
   createdAt               DateTime @default(now()) @db.Timestamptz(3)
   updatedAt               DateTime @updatedAt @db.Timestamptz(3)
@@ -188,7 +188,7 @@ model WhySection {
 
   icon                    String?
   title                   String
-  subTitle                String?
+  subTitle                String?  @db.Text
 
   createdAt               DateTime @default(now()) @db.Timestamptz(3)
   updatedAt               DateTime @updatedAt @db.Timestamptz(3)
@@ -205,7 +205,7 @@ model SupportWorkSection {
   order                   Int
   icon                    String?
   title                   String
-  description             String?
+  description             String? @db.Text
   tagline                 String?
 
   focus                   String[]
@@ -226,7 +226,7 @@ model AboutUsSection {
   heroBgImage             String?
   heroTagline             String?
   heroTitle               String?
-  heroDescription         String?
+  heroDescription         String?   @db.Text
 
   vision                  String?   @db.Text
   mission                 String[]
@@ -266,7 +266,7 @@ model WorkStructureDivision {
   aboutUsSection          AboutUsSection @relation( fields: [aboutUsSectionId], references: [id], onDelete: Cascade )
 
   divisionName            String
-  divisionJobDescription  String
+  divisionJobDescription  String   @db.Text
 
   createdAt               DateTime @default(now()) @db.Timestamptz(3)
   updatedAt               DateTime @updatedAt @db.Timestamptz(3)
@@ -383,4 +383,9 @@ model ContactList {
 
   createdAt               DateTime @default(now()) @db.Timestamptz(3)
   updatedAt               DateTime @updatedAt @db.Timestamptz(3)
+}
+
+model test {
+  key       String    @id     @default(cuid())
+  name      String
 }

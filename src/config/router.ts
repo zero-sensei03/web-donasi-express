@@ -8,6 +8,11 @@ import { galleryPublicRouter, galleryRouter } from "../features/campaign/gallery
 import { donatePublicRouter, donateRouter } from "../features/campaign/donation/donation.route";
 import { PaymentRouter, protectedPaymentRouter } from "../features/campaign/payment-method/payment.route";
 import { ContactRouter, protectedContactRouter } from "../features/campaign/contact-list/contact.route";
+import { auditRouter } from "../features/audit/route";
+import { notifRouter } from "../features/notification/route";
+import { userRouter } from "../features/user/route";
+import { aboutRouter } from "../features/campaign/section/about/about.route";
+import { homeRouter } from "../features/campaign/section/homepage/home.route";
 
 const router = Router()
 
@@ -22,8 +27,13 @@ router.use("/public/donation", donatePublicRouter)
 router.use("/public/payment-method", PaymentRouter)
 router.use("/public/contact-list", ContactRouter)
 
+router.use("/protected/audit", authenticate, auditRouter)
+router.use("/protected/notification", authenticate, notifRouter)
+router.use("/protected/user", authenticate, userRouter)
 router.use("/protected/site-setting", authenticate, siteSettingProtectedRouter)
 router.use("/protected/campaign", authenticate, campaignProtectedRouter)
+router.use("/protected/homepage", authenticate, homeRouter)
+router.use("/protected/about-us", authenticate, aboutRouter)
 router.use("/protected/proposal", authenticate, proposalRouter)
 router.use("/protected/gallery", authenticate, galleryRouter)
 router.use("/protected/donation", authenticate, donateRouter)

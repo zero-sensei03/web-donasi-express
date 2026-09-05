@@ -1,5 +1,6 @@
 import { AuditTransaction, Prisma } from "../../generated/prisma/client";
 import { prisma } from "../../lib/prisma";
+import { AppError } from "../../utils/AppError";
 import { agentResult } from "../../utils/userAgent";
 
 function generateAuditDescription(
@@ -33,6 +34,17 @@ function generateAuditDescription(
   }
 }
 
+ export interface FindAllAuditLogDto {
+  page?: number;
+  limit?: number;
+  userId?: string;
+  transaction?: AuditTransaction;
+  entity?: string;
+  startDate?: Date;
+  endDate?: Date;
+  search?: string;
+}
+
 export class AuditService {
   async create(
     prisma: Prisma.TransactionClient,
@@ -57,27 +69,49 @@ export class AuditService {
       data: payload,
     });
   }
-
-  async findByUser(
-    userId: string,
-    page: number = 1,
-    limit: number = 10,
-  ) {
+  async findAll(query: FindAllAuditLogDto = {}) {
+    const page = query.page ? Number(query.page) : 1;
+    const limit = query.limit ? Number(query.limit) : 10;
     const skip = (page - 1) * limit;
+
+    // Susun kueri filter Prisma
+    const where: Prisma.AuditLogWhereInput = {
+      ...(query.userId && { userId: query.userId }),
+      ...(query.transaction && { transaction: query.transaction }),
+      ...(query.entity && { entity: { contains: query.entity, mode: 'insensitive' } }),
+      ...((query.startDate || query.endDate) && {
+        createdAt: {
+          ...(query.startDate && { gte: query.startDate }),
+          ...(query.endDate && { lte: query.endDate }),
+        },
+      }),
+      ...(query.search && {
+        OR: [
+          { description: { contains: query.search, mode: 'insensitive' } },
+          { entityId: { contains: query.search, mode: 'insensitive' } },
+        ],
+      }),
+    };
 
     const [data, total] = await Promise.all([
       prisma.auditLog.findMany({
-        where: { userId },
+        where,
         orderBy: {
           createdAt: "desc",
         },
         skip,
         take: limit,
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+            },
+          },
+        },
       }),
 
-      prisma.auditLog.count({
-        where: { userId },
-      }),
+      prisma.auditLog.count({ where }),
     ]);
 
     return {
@@ -107,8 +141,24 @@ export class AuditService {
   }
 
   async findById(id: string) {
-    return prisma.auditLog.findUnique({
-      where: { id }
-    });
+    try {
+      const data = prisma.auditLog.findUnique({
+        where: { id },
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+            },
+          },
+        },
+      });
+
+      if (!data) throw new AppError("Data tidak ditemukan", 404)
+
+      return data
+    } catch (error) {
+      throw error
+    }
   }
 }

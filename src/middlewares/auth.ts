@@ -39,7 +39,6 @@ export const authenticate = (
 
 /**
  * Middleware Role-based Access Control (RBAC)
- * Contoh penggunaan: authorizeRoles("SUPERADMIN", "EDUCATOR")
  */
 export const authorizeRoles = (...allowedRoles: Role[]) => {
   return (req: Request, res: Response, next: NextFunction) => {

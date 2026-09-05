@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { SiteSetting, SiteSettingPublicController } from "./site-setting.controller";
 import { createUploadMiddleware } from "../../middlewares/upload";
+import { authorizeRoles } from "../../middlewares/auth";
 
 const publicRouter = Router();
 
@@ -16,7 +17,7 @@ const uploadLogo = createUploadMiddleware({
 });
 protectedRouter.get("/", siteSettingController.get)
 protectedRouter.get("/:key", siteSettingController.getByKey)
-protectedRouter.patch("/", siteSettingController.updateValue)
-protectedRouter.patch("/logo", uploadLogo.single('logo'), siteSettingController.updateLogo)
+protectedRouter.patch("/", authorizeRoles("SUPERADMIN", "ADMIN"), siteSettingController.updateValue)
+protectedRouter.patch("/logo", authorizeRoles("SUPERADMIN", "ADMIN"), uploadLogo.single('logo'), siteSettingController.updateLogo)
 
 export { publicRouter as siteSettingPublicRouter, protectedRouter as siteSettingProtectedRouter }

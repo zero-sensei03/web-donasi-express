@@ -5,6 +5,7 @@ import { storageService } from "../../../lib/storage.service";
 import { AppError } from "../../../utils/AppError";
 import { agentResult } from "../../../utils/userAgent";
 import { AuditService } from "../../audit/service";
+import { NotificationService } from "../../notification/service";
 import { RequestCreateDonationDTO } from "./donation.validate";
 
 export function maskName(name: string): string {
@@ -54,6 +55,7 @@ export function timeAgo(dateInput: Date | string | number): string {
 }
 
 const serviceAudit = new AuditService();
+const servicNotif = new NotificationService();
 export const StoreDonateService = async (agent: agentResult, data: RequestCreateDonationDTO, file: Express.Multer.File) => {
     try {
         const proof = await storageService.upload(file.buffer, file.mimetype, {
@@ -70,6 +72,7 @@ export const StoreDonateService = async (agent: agentResult, data: RequestCreate
             })
     
             await serviceAudit.create(tx, null, "CREATE", "donation", result.id, agent, result)
+            await servicNotif.create(tx, `Donasi baru telah masuk`, `Donasi sebesar Rp${result.amount.toLocaleString("id-ID")}, dilakukan oleh ${maskName(result.donorName)}`, "NEW_DONATION", result.id)
             return {
                 id: result.id,
                 donorName: result.donorName,
