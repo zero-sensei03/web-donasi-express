@@ -51,6 +51,7 @@ RUN npm ci
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma7.config.ts ./
+COPY --from=builder /app/src/generated ./src/generated
 
 # Copy hasil build SWC (termasuk kode yang meng-import prisma client)
 COPY --from=builder /app/dist ./dist
