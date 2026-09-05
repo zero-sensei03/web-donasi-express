@@ -53,7 +53,7 @@ jobs:
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
             # 3. Pull image backend terbaru dari GHCR
-            docker compose pull backend
+            docker compose pull backend-app
 
             # 4. Jalankan ulang container backend (otomatis jalankan 'npx prisma migrate deploy' saat start)
             docker compose up -d --remove-orphans backend
