@@ -131,7 +131,7 @@ export const DonationCampaignPublicService = async (campaignId: string) => {
       }
     })
 
-    count donatur = await prisma.donation.count({ where: { campaignid } })
+    const donatur = await prisma.donation.count({ where: { campaignid } })
 
     return {
       target: campaign.targetDonationAmount,
