@@ -8,7 +8,9 @@ WORKDIR /app
 RUN apk add --no-cache openssl
 
 COPY package*.json ./
+
 RUN npm ci
+
 
 # ==========================================
 # Stage 2 - Build
@@ -20,18 +22,22 @@ WORKDIR /app
 RUN apk add --no-cache openssl
 
 COPY --from=deps /app/node_modules ./node_modules
+
 COPY package*.json ./
 COPY prisma ./prisma
 COPY src ./src
-COPY .swcrc* ./
+COPY .swcrc ./
 COPY prisma7.config.ts ./
 
-# Generate Prisma Client & Build SWC
-RUN npx prisma generate
+# Generate Prisma Client
+RUN npx prisma generate --config prisma7.config.ts
+
+# Build application + generated Prisma Client
 RUN npm run build
 
+
 # ==========================================
-# Stage 3 - Production Runner
+# Stage 3 - Production
 # ==========================================
 FROM node:22-alpine AS runner
 
@@ -39,25 +45,22 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Membutuhkan openssl untuk Prisma
 RUN apk add --no-cache openssl
 
 COPY package*.json ./
 
-# Install dependensi
-RUN npm ci
+# Production dependencies
+RUN npm ci --omit=dev
 
-# Copy Prisma schema & config
+# Prisma migration files
 COPY --from=builder /app/prisma ./prisma
+
+# Prisma config
 COPY --from=builder /app/prisma7.config.ts ./
 
-# Copy hasil build SWC
+# Compiled application
 COPY --from=builder /app/dist ./dist
-
-# GENERATE REFRESH PRISMA CLIENT LANGSUNG DI RUNNER
-RUN npx prisma generate --config prisma7.config.ts
 
 EXPOSE 6001
 
-# Jalankan migration dulu ke Postgres, lalu jalankan server Node
 CMD ["sh", "-c", "npx prisma migrate deploy --config prisma7.config.ts && node dist/config/server.js"]
