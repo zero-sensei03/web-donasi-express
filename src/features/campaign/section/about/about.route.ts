@@ -13,7 +13,7 @@ const uploadFile = createUploadMiddleware({
 });
 
 router.get("/campaign/:campaignId", dataController.getAboutByCampaignId);
-router.post("/", uploadFile.single("image"), validate(UpsertAboutUsSchema), dataController.upsertAboutSection);
+router.post("/campaign/:campaignId", uploadFile.single("image"), validate(UpsertAboutUsSchema), dataController.upsertAboutSection);
 
 router.post("/campaign-tim", uploadFile.single("image"), validate(CreateCampaignTimSchema), dataController.createCampaignTim);
 router.put("/campaign-tim", uploadFile.single("image"), validate(CreateCampaignTimSchema), dataController.updateCampaignTim);

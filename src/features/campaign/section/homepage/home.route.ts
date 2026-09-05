@@ -14,7 +14,7 @@ const uploadFile = createUploadMiddleware({
 
 router.get("/campaign/:campaignId", dataController.getHomePageByCampaignId);
 router.post(
-    "/",
+    "/campaign/:campaignId",
     uploadFile.fields([
         { name: "heroImage", maxCount: 1 },
         { name: "ctaImage", maxCount: 1 },
