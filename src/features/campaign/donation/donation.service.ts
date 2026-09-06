@@ -96,6 +96,7 @@ export const getNewestDonate = async (limit: number, campaignId: string) => {
         select: {
             donorName: true,
             amount: true,
+            acceptedAmount: true,
             message: true,
             createdAt: true
         },
@@ -108,6 +109,7 @@ export const getNewestDonate = async (limit: number, campaignId: string) => {
     return donate.map(item => ({
         ...item,
         createdAt: timeAgo(item.createdAt),
+        amount: item.acceptedAmount || item.amount,
         donorName: item.donorName.toLowerCase() !== "anonymous" ? maskName(item.donorName) : "Anonymous"
     }))
 }

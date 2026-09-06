@@ -129,7 +129,7 @@ export class AuditService {
     entity: string,
     entityId: string,
   ) {
-    return prisma.auditLog.findMany({
+    return await prisma.auditLog.findMany({
       where: {
         entity,
         entityId,
@@ -142,7 +142,7 @@ export class AuditService {
 
   async findById(id: string) {
     try {
-      const data = prisma.auditLog.findUnique({
+      const data = await prisma.auditLog.findUnique({
         where: { id },
         include: {
           user: {
