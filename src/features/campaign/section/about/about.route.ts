@@ -17,10 +17,10 @@ router.post("/campaign/:campaignId", uploadFile.single("image"), validate(Upsert
 
 router.post("/campaign-tim", uploadFile.single("image"), validate(CreateCampaignTimSchema), dataController.createCampaignTim);
 router.put("/campaign-tim/:id", uploadFile.single("image"), validate(CreateCampaignTimSchema), dataController.updateCampaignTim);
-router.delete("/campaign-tim", dataController.deleteCampaignTim);
+router.delete("/campaign-tim/:id", dataController.deleteCampaignTim);
 
 router.post("/campaign-work-structure", validate(CreateWorkStructureSchema), dataController.createWorkStructure);
 router.put("/campaign-work-structure/:id", validate(CreateWorkStructureSchema), dataController.updateWorkStructure);
-router.delete("/campaign-work-structure", dataController.deleteWorkStructure);
+router.delete("/campaign-work-structure/:id", dataController.deleteWorkStructure);
 
 export { router as aboutRouter };

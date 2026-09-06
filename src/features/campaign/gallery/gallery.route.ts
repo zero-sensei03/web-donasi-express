@@ -12,7 +12,7 @@ const router = Router();
 const galleryController = new GalleryController();
 
 const uploadGallery = createUploadMiddleware({
-  maxFileSizeMB: 50,
+  maxFileSizeMB: 15,
   maxFilesCount: 2,
   allowedMimeTypes: [
     "image/jpeg",
